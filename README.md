@@ -1,5 +1,6 @@
-# Rozgar Pakistan - E-Resume Builder
+# Database Systems Lab - Lab 08
 ## ReactJS Integration, Node.js & CRUD Operations
+### Rozgar Pakistan - E-Resume Builder
 
 ---
 
@@ -200,6 +201,14 @@ Project_Files/
 ```bash
 cd backend
 npm install
+```
+
+**Configure database connection** (edit `server.js` if needed):
+
+- **Windows Authentication (SQL Express):** No changes needed if using default config
+- **SQL Server Authentication:** Update the `user` and `password` in dbConfig
+
+```bash
 npm start
 ```
 
@@ -282,11 +291,30 @@ const cors = require('cors');        // Cross-Origin requests
 
 #### 2. Database Configuration (Task 5)
 
+You have two options depending on your SQL Server authentication mode:
+
+**Option A: Windows Authentication (Recommended for local development)**
+
 ```javascript
+// Using Windows Authentication with SQL Express
+const sql = require('mssql/msnodesqlv8');  // Note: different import
+
 const dbConfig = {
-    user: 'sa',
-    password: '123',
-    server: 'localhost',
+    connectionString: 'Driver={ODBC Driver 17 for SQL Server};Server=localhost\\SQLEXPRESS;Database=RozgarDB;Trusted_Connection=yes;'
+};
+```
+
+> Requires additional package: `npm install msnodesqlv8`
+
+**Option B: SQL Server Authentication**
+
+```javascript
+const sql = require('mssql');
+
+const dbConfig = {
+    user: 'sa',                     // Your SQL username
+    password: 'YourPassword',       // Your SQL password
+    server: 'localhost',            // Or 'localhost\\SQLEXPRESS'
     database: 'RozgarDB',
     options: {
         encrypt: true,
@@ -389,6 +417,209 @@ const handleSave = async () => {
 cd frontend
 npm install          # Install dependencies
 npm start            # Start on port 3000
+```
+
+---
+
+## 10. Task-by-Task Solutions
+
+### Task 1: Secure Login Procedure (SQL)
+
+📁 **File:** `02_Task1_sp_LoginUser.sql`
+
+```sql
+CREATE PROCEDURE sp_LoginUser
+    @Email VARCHAR(100),
+    @Password VARCHAR(100)
+AS
+BEGIN
+    SELECT UserID, FullName
+    FROM Users
+    WHERE Email = @Email AND PasswordHash = @Password;
+END;
+```
+
+---
+
+### Task 2: CRUD Procedures (SQL)
+
+📁 **File:** `03_Task2_CRUD_Procedures.sql`
+
+```sql
+-- READ
+CREATE PROCEDURE sp_GetExperience @UserID INT
+AS
+BEGIN
+    SELECT ExpID, JobTitle, CompanyName, YearsWorked, IsCurrentJob
+    FROM Experience WHERE UserID = @UserID;
+END;
+
+-- CREATE
+CREATE PROCEDURE sp_AddExperience
+    @UserID INT, @JobTitle VARCHAR(100), 
+    @CompanyName VARCHAR(100), @YearsWorked INT
+AS
+BEGIN
+    INSERT INTO Experience (UserID, JobTitle, CompanyName, YearsWorked)
+    VALUES (@UserID, @JobTitle, @CompanyName, @YearsWorked);
+END;
+```
+
+---
+
+### Task 3: React Login Component
+
+📁 **File:** `04_Task3_Login.jsx`
+
+```jsx
+import React, { useState } from 'react';
+
+function Login() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    return (
+        <div>
+            <input 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+            />
+            <input 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+            />
+            <button onClick={() => console.log(email, password)}>
+                Login
+            </button>
+        </div>
+    );
+}
+```
+
+---
+
+### Task 4: React Experience Table
+
+📁 **File:** `05_Task4_ExperienceTable.jsx`
+
+```jsx
+function ExperienceTable({ data }) {
+    return (
+        <table>
+            <thead>
+                <tr><th>Job Title</th><th>Company</th></tr>
+            </thead>
+            <tbody>
+                {data.map((job) => (
+                    <tr key={job.ExpID}>
+                        <td>{job.JobTitle}</td>
+                        <td>{job.CompanyName}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+```
+
+---
+
+### Task 5: Database Config (Node.js)
+
+📁 **File:** `06_Task5_dbConfig.js`
+
+**Option A: Windows Authentication (SQL Express)**
+
+```javascript
+const sql = require('mssql/msnodesqlv8');
+
+const dbConfig = {
+    connectionString: 'Driver={ODBC Driver 17 for SQL Server};Server=localhost\\SQLEXPRESS;Database=RozgarDB;Trusted_Connection=yes;'
+};
+
+// Connect
+const pool = await sql.connect(dbConfig);
+```
+
+> **Note:** Run `npm install msnodesqlv8` to use Windows Authentication
+
+**Option B: SQL Server Authentication**
+
+```javascript
+const sql = require('mssql');
+
+const dbConfig = {
+    user: 'sa',                     // Your SQL username
+    password: 'YourPassword',       // Your SQL password
+    server: 'localhost',            // Or 'localhost\\SQLEXPRESS'
+    database: 'RozgarDB',
+    options: {
+        encrypt: true,
+        trustServerCertificate: true
+    }
+};
+```
+
+---
+
+### Task 6: Backend POST API
+
+📁 **File:** `07_Task6_Backend_POST_API.js`
+
+```javascript
+app.post('/api/addExp', async (req, res) => {
+    const { UserID, JobTitle, CompanyName, YearsWorked } = req.body;
+    
+    let pool = await sql.connect(dbConfig);
+    let result = await pool.request()
+        .input('UserID', sql.Int, UserID)
+        .input('JobTitle', sql.VarChar(100), JobTitle)
+        .input('CompanyName', sql.VarChar(100), CompanyName)
+        .input('YearsWorked', sql.Int, YearsWorked)
+        .execute('sp_AddExperience');
+    
+    res.json({ success: true, data: result.recordset[0] });
+});
+```
+
+---
+
+### Task 7: React useEffect (READ)
+
+📁 **File:** `08_Task7_useEffect_READ.jsx`
+
+```jsx
+useEffect(() => {
+    fetch('http://localhost:5000/api/getExp/1')
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            setExperience(data.data);
+        });
+}, []);
+```
+
+---
+
+### Task 8: React handleSave (CREATE)
+
+📁 **File:** `09_Task8_handleSave_CREATE.jsx`
+
+```jsx
+const handleSave = async () => {
+    await fetch('http://localhost:5000/api/addExp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            UserID: 1,
+            JobTitle: 'Software Engineer',
+            CompanyName: 'Systems Ltd',
+            YearsWorked: 2
+        })
+    });
+};
 ```
 
 ---
@@ -502,6 +733,30 @@ Delete experience.
 
 ---
 
+## 11.1 Testing APIs with Postman
+
+[Download Postman](https://www.postman.com/downloads/) to test API endpoints.
+
+### Quick Test Guide
+
+| Endpoint | Method | URL | Body (JSON) |
+|----------|--------|-----|-------------|
+| Login | POST | `http://localhost:5000/api/login` | `{"email": "ali.raza@email.com", "password": "password123"}` |
+| Get Experience | GET | `http://localhost:5000/api/getExp/1` | None |
+| Add Experience | POST | `http://localhost:5000/api/addExp` | `{"UserID": 1, "JobTitle": "Developer", "CompanyName": "Tech Co", "YearsWorked": 2}` |
+| Update Experience | PUT | `http://localhost:5000/api/updateExp/103` | `{"JobTitle": "Senior Dev", "CompanyName": "Tech Co", "YearsWorked": 3, "IsCurrentJob": true}` |
+| Delete Experience | DELETE | `http://localhost:5000/api/deleteExp/105` | None |
+
+### Postman Setup
+
+1. Select request method (GET, POST, PUT, DELETE)
+2. Enter the URL
+3. For POST/PUT: Go to **Body** → **raw** → Select **JSON**
+4. Paste the JSON body
+5. Click **Send**
+
+---
+
 ## 12. Troubleshooting Guide
 
 ### ❌ "Cannot connect to SQL Server"
@@ -511,6 +766,42 @@ Delete experience.
 | Check SQL Server is running | Open `services.msc` → Find SQL Server → Ensure "Running" |
 | Check server name | Default: `localhost` or `localhost\SQLEXPRESS` |
 | Enable TCP/IP | SQL Server Configuration Manager → Protocols → Enable TCP/IP |
+| Restart SQL Server | After enabling TCP/IP, restart SQL Server service |
+
+---
+
+### ❌ "Failed to connect to localhost:1433" (Named Instance)
+
+If you're using SQL Express (named instance), you need to:
+
+| Solution | Steps |
+|----------|-------|
+| Use correct server name | Change `localhost` to `localhost\SQLEXPRESS` |
+| Start SQL Server Browser | `services.msc` → SQL Server Browser → Start |
+| Enable Named Pipes | SQL Server Configuration Manager → Protocols → Enable Named Pipes |
+
+---
+
+### ❌ "Login failed for user ''" (Windows Authentication)
+
+This happens when Windows Authentication isn't configured properly in Node.js.
+
+| Solution | Steps |
+|----------|-------|
+| Install msnodesqlv8 | Run `npm install msnodesqlv8` in backend folder |
+| Use correct import | Change to `require('mssql/msnodesqlv8')` |
+| Use connection string | Use `connectionString` property with `Trusted_Connection=yes` |
+
+**Working Windows Auth Configuration:**
+```javascript
+const sql = require('mssql/msnodesqlv8');
+
+const dbConfig = {
+    connectionString: 'Driver={ODBC Driver 17 for SQL Server};Server=localhost\\SQLEXPRESS;Database=RozgarDB;Trusted_Connection=yes;'
+};
+
+const pool = await sql.connect(dbConfig);
+```
 
 ---
 
