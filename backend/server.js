@@ -7,7 +7,7 @@
 // ============================================================================
 
 const express = require('express');
-const sql = require('mssql');
+const sql = require('mssql/msnodesqlv8');
 const cors = require('cors');
 
 const app = express();
@@ -28,20 +28,7 @@ app.use(express.json());
 // ============================================================================
 
 const dbConfig = {
-    user: 'sa',                     // Change to your SQL username
-    password: '123',                // Change to your SQL password
-    server: 'localhost',            // Change if using different server
-    // server: 'localhost\\SQLEXPRESS', // Uncomment for SQL Express
-    database: 'RozgarDB',
-    options: {
-        encrypt: true,
-        trustServerCertificate: true  // Required for local development
-    },
-    pool: {
-        max: 10,
-        min: 0,
-        idleTimeoutMillis: 30000
-    }
+    connectionString: 'Driver={ODBC Driver 17 for SQL Server};Server=Fatima-Asif\\SQLEXPRESS;Database=RozgarDB;Trusted_Connection=yes;'
 };
 
 // ============================================================================
