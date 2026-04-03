@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import AddExperience from './components/AddExperience';  // Import your component
 
 // ============================================================================
 // LOGIN COMPONENT (Task 3)
@@ -39,7 +40,7 @@ function Login({ onLogin }) {
             const data = await response.json();
             
             if (data.success) {
-                onLogin(data.user);  // Pass user to parent
+                onLogin(data.user);
             } else {
                 setMessage(data.message || 'Login failed');
             }
@@ -142,91 +143,6 @@ function ExperienceTable({ data, onDelete, onEdit }) {
 }
 
 // ============================================================================
-// ADD EXPERIENCE FORM COMPONENT (Task 8)
-// ============================================================================
-
-function AddExperienceForm({ userId, onSave }) {
-    const [jobTitle, setJobTitle] = useState('');
-    const [companyName, setCompanyName] = useState('');
-    const [yearsWorked, setYearsWorked] = useState('');
-    const [message, setMessage] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // handleSave function (Task 8)
-    const handleSave = async () => {
-        if (!jobTitle || !companyName || !yearsWorked) {
-            setMessage('Please fill in all fields');
-            return;
-        }
-        
-        setIsSubmitting(true);
-        setMessage('');
-        
-        try {
-            const response = await fetch('http://localhost:5000/api/addExp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    UserID: userId,
-                    JobTitle: jobTitle,
-                    CompanyName: companyName,
-                    YearsWorked: parseInt(yearsWorked)
-                })
-            });
-            
-            const result = await response.json();
-            console.log('Save result:', result);
-            
-            if (result.success) {
-                setMessage('Experience added successfully!');
-                setJobTitle('');
-                setCompanyName('');
-                setYearsWorked('');
-                onSave();  // Refresh the list
-            } else {
-                setMessage('Error: ' + result.message);
-            }
-        } catch (error) {
-            setMessage('Failed to save experience');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    return (
-        <div className="add-form-container">
-            <h3>Add New Experience</h3>
-            <div className="add-form">
-                <input
-                    type="text"
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                    placeholder="Job Title (e.g., Software Engineer)"
-                />
-                <input
-                    type="text"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="Company Name (e.g., Systems Ltd)"
-                />
-                <input
-                    type="number"
-                    value={yearsWorked}
-                    onChange={(e) => setYearsWorked(e.target.value)}
-                    placeholder="Years Worked"
-                    min="1"
-                    max="50"
-                />
-                <button onClick={handleSave} disabled={isSubmitting} className="btn-add">
-                    {isSubmitting ? 'Saving...' : 'Add Experience'}
-                </button>
-            </div>
-            {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{message}</p>}
-        </div>
-    );
-}
-
-// ============================================================================
 // DASHBOARD COMPONENT
 // ============================================================================
 
@@ -234,7 +150,6 @@ function Dashboard({ user, onLogout }) {
     const [experience, setExperience] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // useEffect to fetch data (Task 7)
     useEffect(() => {
         fetchExperience();
     }, [user.UserID]);
@@ -266,7 +181,7 @@ function Dashboard({ user, onLogout }) {
             const result = await response.json();
             
             if (result.success) {
-                fetchExperience();  // Refresh list
+                fetchExperience();
             }
         } catch (error) {
             console.error('Delete error:', error);
@@ -333,7 +248,8 @@ function Dashboard({ user, onLogout }) {
                 </div>
                 
                 <div className="card">
-                    <AddExperienceForm 
+                    {/* USING THE IMPORTED COMPONENT */}
+                    <AddExperience 
                         userId={user.UserID}
                         onSave={fetchExperience}
                     />

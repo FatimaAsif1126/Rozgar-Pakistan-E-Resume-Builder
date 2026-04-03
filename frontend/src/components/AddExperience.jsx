@@ -11,13 +11,30 @@ function AddExperience({ userId, onSave }) {
     const [yearsWorked, setYearsWorked] = useState('');
     const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const [jobTitleError, setJobTitleError] = useState('');
+    const [companyNameError, setCompanyNameError] = useState('');
+    const [yearsWorkedError, setYearsWorkedError] = useState('');
 
     // handleSave function (Task 8)
     const handleSave = async () => {
-        if (!jobTitle || !companyName || !yearsWorked) {
-            setMessage('Please fill in all fields');
+       
+        if(!jobTitle)
+        {
+            setJobTitleError('Job title is required')
             return;
         }
+         if(!companyName)
+        {
+            setCompanyNameError('Company Name is required')
+             return;
+        }
+         if(!yearsWorked)
+        {
+            setYearsWorkedError('Number of years worked is required')
+             return;
+        }
+
         
         setIsSubmitting(true);
         setMessage('');
@@ -58,28 +75,51 @@ function AddExperience({ userId, onSave }) {
         <div className="add-form-container">
             <h3>Add New Experience</h3>
             <div className="add-form">
-                <input
-                    type="text"
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                    placeholder="Job Title"
-                />
-                <input
-                    type="text"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="Company Name"
-                />
-                <input
-                    type="number"
-                    value={yearsWorked}
-                    onChange={(e) => setYearsWorked(e.target.value)}
-                    placeholder="Years Worked"
-                    min="1"
-                />
-                <button onClick={handleSave} disabled={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : 'Add Experience'}
-                </button>
+                <div className="input-field">
+                    <input
+                        type="text"
+                        value={jobTitle}
+                        onChange={(e) => {
+                            setJobTitle(e.target.value);
+                            setJobTitleError('');
+                        }}
+                        placeholder="Job Title *"
+                    />
+                    {jobTitleError && <span className="error-text">* {jobTitleError}</span>}
+                </div>
+                
+                <div className="input-field">
+                    <input
+                        type="text"
+                        value={companyName}
+                        onChange={(e) => {
+                            setCompanyName(e.target.value);
+                            setCompanyNameError('');
+                        }}
+                        placeholder="Company Name *"
+                    />
+                    {companyNameError && <span className="error-text">* {companyNameError}</span>}
+                </div>
+                
+                <div className="input-field">
+                    <input
+                        type="number"
+                        value={yearsWorked}
+                        onChange={(e) => {
+                            setYearsWorked(e.target.value);
+                            setYearsWorkedError('');
+                        }}
+                        placeholder="Years Worked *"
+                        min="1"
+                    />
+                    {yearsWorkedError && <span className="error-text">* {yearsWorkedError}</span>}
+                </div>
+                
+                <div className="button-field">
+                   <button onClick={handleSave} disabled={isSubmitting || !jobTitle || !companyName || !yearsWorked}>
+    {isSubmitting ? 'Saving...' : 'Add Experience'}
+</button>
+                </div>
             </div>
             {message && <p className="message">{message}</p>}
         </div>

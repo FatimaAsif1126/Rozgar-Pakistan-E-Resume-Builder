@@ -357,7 +357,13 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 15px;
-    align-items: end;
+    align-items: start;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    min-height: 75px;
 }
 
 .add-form input {
@@ -365,9 +371,26 @@ body {
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
+    width: 100%;
 }
 
 .add-form input:focus {
     outline: none;
     border-color: #4e9f3d;
+}
+
+.error-text {
+    color: #c00;
+    font-size: 12px;
+    margin-top: 4px;
+    min-height: 18px;
+    display: block;
+}
+
+.button-field {
+    margin-top: 10px;
+}
+
+.button-field button {
+    width: 100%;
 }

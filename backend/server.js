@@ -59,7 +59,7 @@ async function connectToDatabase() {
 
 // ----- HEALTH CHECK -----
 app.get('/', (req, res) => {
-    res.json({ 
+    res.json({
         message: 'Rozgar Pakistan API is running!',
         endpoints: [
             'POST /api/login',
@@ -75,20 +75,20 @@ app.get('/', (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
+
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
                 message: 'Email and password are required'
             });
         }
-        
+
         // Call the sp_LoginUser stored procedure
         const result = await pool.request()
             .input('Email', sql.VarChar(100), email)
             .input('Password', sql.VarChar(100), password)
             .execute('sp_LoginUser');
-        
+
         if (result.recordset.length > 0) {
             res.json({
                 success: true,
@@ -101,7 +101,7 @@ app.post('/api/login', async (req, res) => {
                 message: 'Invalid email or password'
             });
         }
-        
+
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({
@@ -116,17 +116,17 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/getExp/:userId', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
-        
+
         // Call the sp_GetExperience stored procedure
         const result = await pool.request()
             .input('UserID', sql.Int, userId)
             .execute('sp_GetExperience');
-        
+
         res.json({
             success: true,
             data: result.recordset
         });
-        
+
     } catch (err) {
         console.error('Get experience error:', err);
         res.status(500).json({
@@ -141,7 +141,7 @@ app.get('/api/getExp/:userId', async (req, res) => {
 app.post('/api/addExp', async (req, res) => {
     try {
         const { UserID, JobTitle, CompanyName, YearsWorked } = req.body;
-        
+
         // Validate required fields
         if (!UserID || !JobTitle || !CompanyName || !YearsWorked) {
             return res.status(400).json({
@@ -149,7 +149,18 @@ app.post('/api/addExp', async (req, res) => {
                 message: 'All fields required: UserID, JobTitle, CompanyName, YearsWorked'
             });
         }
-        
+        if (YearsWorked > 50) {
+            return res.status(400).json({
+                success: false,
+                message: 'Years worked cannot exceed 50 years'
+            });
+        }
+        if (YearsWorked < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Years worked cannot be negative'
+            });
+        }
         // Call the sp_AddExperience stored procedure
         const result = await pool.request()
             .input('UserID', sql.Int, UserID)
@@ -157,13 +168,13 @@ app.post('/api/addExp', async (req, res) => {
             .input('CompanyName', sql.VarChar(100), CompanyName)
             .input('YearsWorked', sql.Int, YearsWorked)
             .execute('sp_AddExperience');
-        
+
         res.json({
             success: true,
             message: 'Experience added successfully!',
             data: result.recordset[0]
         });
-        
+
     } catch (err) {
         console.error('Add experience error:', err);
         res.status(500).json({
@@ -179,7 +190,14 @@ app.put('/api/updateExp/:expId', async (req, res) => {
     try {
         const expId = parseInt(req.params.expId);
         const { JobTitle, CompanyName, YearsWorked, IsCurrentJob } = req.body;
-        
+
+        if (YearsWorked > 50) {
+            return res.status(400).json({
+                success: false,
+                message: 'Error: Years worked cannot exceed 50 years'
+            });
+        }
+
         await pool.request()
             .input('ExpID', sql.Int, expId)
             .input('JobTitle', sql.VarChar(100), JobTitle)
@@ -194,12 +212,12 @@ app.put('/api/updateExp/:expId', async (req, res) => {
                     IsCurrentJob = @IsCurrentJob
                 WHERE ExpID = @ExpID
             `);
-        
+
         res.json({
             success: true,
             message: 'Experience updated successfully!'
         });
-        
+
     } catch (err) {
         console.error('Update experience error:', err);
         res.status(500).json({
@@ -214,16 +232,16 @@ app.put('/api/updateExp/:expId', async (req, res) => {
 app.delete('/api/deleteExp/:expId', async (req, res) => {
     try {
         const expId = parseInt(req.params.expId);
-        
+
         await pool.request()
             .input('ExpID', sql.Int, expId)
             .query('DELETE FROM Experience WHERE ExpID = @ExpID');
-        
+
         res.json({
             success: true,
             message: 'Experience deleted successfully!'
         });
-        
+
     } catch (err) {
         console.error('Delete experience error:', err);
         res.status(500).json({
@@ -243,12 +261,12 @@ const PORT = 5000;  // React runs on 3000, so backend uses 5000
 async function startServer() {
     // Connect to database first
     const connected = await connectToDatabase();
-    
+
     if (!connected) {
         console.log('\nWARNING: Server starting without database connection.');
         console.log('API endpoints will not work until database is connected.\n');
     }
-    
+
     // Start the Express server
     app.listen(PORT, () => {
         console.log('\n============================================');

@@ -1,0 +1,27 @@
+# Dependencies
+backend/node_modules/
+frontend/node_modules/
+node_modules/
+
+# Lock files
+backend/package-lock.json
+frontend/package-lock.json
+
+# VS files
+.vs/
+
+# Build files
+frontend/build/
+backend/build/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
