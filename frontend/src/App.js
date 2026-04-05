@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import AddExperience from './components/AddExperience';  // Import your component
+import ExperienceTable from './components/ExperienceTable';
 
 // ============================================================================
 // LOGIN COMPONENT (Task 3)
@@ -95,52 +96,7 @@ function Login({ onLogin }) {
     );
 }
 
-// ============================================================================
-// EXPERIENCE TABLE COMPONENT (Task 4)
-// ============================================================================
 
-function ExperienceTable({ data, onDelete, onEdit }) {
-    if (!data || data.length === 0) {
-        return (
-            <div className="empty-state">
-                <p>No work experience added yet.</p>
-                <p>Add your first experience below!</p>
-            </div>
-        );
-    }
-
-    return (
-        <table className="experience-table">
-            <thead>
-                <tr>
-                    <th>Job Title</th>
-                    <th>Company</th>
-                    <th>Years</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {data.map((job) => (
-                    <tr key={job.ExpID}>
-                        <td><strong>{job.JobTitle}</strong></td>
-                        <td>{job.CompanyName}</td>
-                        <td>{job.YearsWorked} year{job.YearsWorked > 1 ? 's' : ''}</td>
-                        <td>
-                            <span className={`badge ${job.IsCurrentJob ? 'current' : 'past'}`}>
-                                {job.IsCurrentJob ? 'Current' : 'Past'}
-                            </span>
-                        </td>
-                        <td>
-                            <button className="btn-edit" onClick={() => onEdit(job)}>Edit</button>
-                            <button className="btn-delete" onClick={() => onDelete(job.ExpID)}>Delete</button>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    );
-}
 
 // ============================================================================
 // DASHBOARD COMPONENT
