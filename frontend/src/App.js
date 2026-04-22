@@ -208,6 +208,7 @@ function Dashboard({ user, onLogout }) {
                     <AddExperience 
                         userId={user.UserID}
                         onSave={fetchExperience}
+                        existingExperience={experience}
                     />
                 </div>
             </main>

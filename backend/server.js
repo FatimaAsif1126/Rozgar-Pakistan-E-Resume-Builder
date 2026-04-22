@@ -161,6 +161,28 @@ app.post('/api/addExp', async (req, res) => {
                 message: 'Years worked cannot be negative'
             });
         }
+
+        // ----- DUPLICATE CHECK -----
+        // Check if same JobTitle + CompanyName already exists for this user (case-insensitive)
+        const duplicateCheck = await pool.request()
+            .input('UserID', sql.Int, UserID)
+            .input('JobTitle', sql.VarChar(100), JobTitle)
+            .input('CompanyName', sql.VarChar(100), CompanyName)
+            .query(`
+                SELECT COUNT(*) AS count 
+                FROM Experience 
+                WHERE UserID = @UserID 
+                  AND LOWER(JobTitle) = LOWER(@JobTitle) 
+                  AND LOWER(CompanyName) = LOWER(@CompanyName)
+            `);
+
+        if (duplicateCheck.recordset[0].count > 0) {
+            return res.status(409).json({
+                success: false,
+                message: `You already have "${JobTitle}" at "${CompanyName}" in your experience.`
+            });
+        }
+
         // Call the sp_AddExperience stored procedure
         const result = await pool.request()
             .input('UserID', sql.Int, UserID)

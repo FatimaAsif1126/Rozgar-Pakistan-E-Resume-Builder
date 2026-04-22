@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 
-function AddExperience({ userId, onSave }) {
+function AddExperience({ userId, onSave, existingExperience = [] }) {
     const [jobTitle, setJobTitle] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [yearsWorked, setYearsWorked] = useState('');
@@ -22,6 +22,7 @@ function AddExperience({ userId, onSave }) {
         setJobTitleError('');
         setCompanyNameError('');
         setYearsWorkedError('');
+        setMessage('');
         
         let hasError = false;
 
@@ -40,6 +41,17 @@ function AddExperience({ userId, onSave }) {
 
         if (hasError) {
             return; // Stop if validation fails
+        }
+
+        // --- CLIENT-SIDE DUPLICATE CHECK ---
+        const isDuplicate = existingExperience.some(
+            (exp) =>
+                exp.JobTitle.toLowerCase() === jobTitle.toLowerCase() &&
+                exp.CompanyName.toLowerCase() === companyName.toLowerCase()
+        );
+        if (isDuplicate) {
+            setMessage(`Error: "${jobTitle}" at "${companyName}" is already in your experience.`);
+            return;
         }
 
         setIsSubmitting(true);
